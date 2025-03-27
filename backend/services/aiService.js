@@ -21,29 +21,47 @@ const categorizeTransaction = async (description) => {
   }
 };
 
-const generateFinancialAdvice = async (transactions) => {
-  const spending = transactions.reduce((acc, t) => {
-    if (t.type === "expense") {
-      acc[t.category] = (acc[t.category] || 0) + t.amount;
+const generateFinancialAdvice = async (data, mode) => {
+  const prompt = `
+  Act as a friendly but expert financial advisor. Provide 3 recommendations based on:
+  ${JSON.stringify(data)}
+
+  Guidelines:
+  1. Use conversational but professional tone
+  2. Include 1 personalized observation
+  3. Add 1 financial concept (e.g., "compound interest")
+  4. Suggest 1 actionable step
+  5. Format as:
+     - Observation: [noticed pattern]
+     - Strategy: [financial concept] 
+     - Action: [specific task]
+
+  Example:
+  1. I notice you spend heavily on weekends - try the 50/30/20 budget rule
+  2. Your grocery spending could benefit from cash envelope systems
+  3. Let's automate $100 weekly transfers to leverage compound interest
+
+  Recommendations for ${mode}:
+  `;
+
+  const response = await hf.textGeneration({
+    model: "gpt2",
+    inputs: prompt,
+    parameters: {
+      max_new_tokens: 300,
+      temperature: 0.7,
+      repetition_penalty: 1.5
     }
-    return acc;
-  }, {});
+  });
 
-  const prompt = `Provide 3 personalized financial recommendations based on these spending patterns:
-  ${JSON.stringify(spending, null, 2)}
-  Format as numbered bullet points:`;
-
-  try {
-    const response = await hf.textGeneration({
-      model: "gpt2",
-      inputs: prompt,
-      parameters: { max_new_tokens: 300, temperature: 0.7 },
-    });
-    return response.generated_text;
-  } catch (err) {
-    console.error("AI advice error:", err);
-    return "1. Track your expenses regularly\n2. Create a monthly budget\n3. Save at least 20% of your income";
+  // Fallback if output quality is poor
+  if (response.generated_text.length > 500 || !/\d\./.test(response.generated_text)) {
+    return mode === 'goals' 
+      ? `1. I notice your goals lack timelines - try SMART criteria\n2. The 1% savings rule could help automate progress\n3. Weekly check-ins would help maintain motivation` 
+      : `1. Your weekend spending is 30% higher - try cash envelopes\n2. The 50/30/20 budget could organize your finances\n3. Let's set up auto-transfers to build savings`;
   }
+
+  return response.generated_text;
 };
 
 const predictSpending = async (transactions) => {
@@ -57,15 +75,43 @@ const predictSpending = async (transactions) => {
 
   const prompt = `Predict next 3 months spending based on this monthly data:
   ${JSON.stringify(monthlySpending)}
-  Return JSON format: { "predictions": [{"month": "January", "amount": 500}, ...] }`;
+  Return a valid JSON object with this exact structure:
+  {
+    "predictions": [
+      {"month": "January", "amount": 500},
+      {"month": "February", "amount": 450},
+      {"month": "March", "amount": 600}
+    ]
+  }`;
 
   try {
     const response = await hf.textGeneration({
       model: "gpt2",
       inputs: prompt,
-      parameters: { max_new_tokens: 200 },
+      parameters: { 
+        max_new_tokens: 200,
+        temperature: 0.3 // Lower temperature for more structured output
+      },
     });
-    return JSON.parse(response.generated_text.match(/{.*}/s)[0]);
+
+    // Improved JSON parsing with fallback
+    try {
+      const jsonMatch = response.generated_text.match(/\{.*\}/s);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error('No JSON found in response');
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError);
+      // Return default predictions if parsing fails
+      return {
+        predictions: [
+          { month: "Next Month", amount: monthlySpending.reduce((a, b) => a + b, 0) / 12 },
+          { month: "Following Month", amount: monthlySpending.reduce((a, b) => a + b, 0) / 12 },
+          { month: "Month After", amount: monthlySpending.reduce((a, b) => a + b, 0) / 12 }
+        ]
+      };
+    }
   } catch (err) {
     console.error("AI prediction error:", err);
     return { predictions: [] };

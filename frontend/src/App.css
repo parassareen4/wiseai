@@ -801,3 +801,60 @@ body {
   .card {
     animation: fadeIn 0.5s ease-out;
   }
+  .recommendations-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .recommendations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .refresh-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  
+  .refresh-btn:hover {
+    transform: rotate(180deg);
+  }
+  
+  .refresh-btn.loading {
+    animation: spin 1s linear infinite;
+  }
+  
+  .recommendations-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  
+  .recommendation-bullet {
+    color: #3b82f6;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+  
+  .error-text {
+    color: #ef4444;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
