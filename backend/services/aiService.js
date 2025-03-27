@@ -1,58 +1,79 @@
 const { HfInference } = require('@huggingface/inference');
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+const hf = new HfInference('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');
+const Transaction = require('../models/Transaction');
 
-// Categorize transaction description
-exports.categorizeTransaction = async (description) => {
-  const prompt = `Categorize this transaction description for personal finance:
-  Description: "${description}"
-  
-  Respond with JSON format like this:
-  { "category": "Food", "tags": ["restaurant", "dining"] }`;
+const categorizeTransaction = async (description) => {
+  const prompt = `Categorize this transaction description:
+  "${description}"
+  Choose from: Food, Transportation, Housing, Entertainment, Utilities, Shopping, Other
+  Respond with only the category name:`;
   
   try {
     const response = await hf.textGeneration({
       model: 'gpt2',
       inputs: prompt,
-      parameters: {
-        max_new_tokens: 100,
-        temperature: 0.3
-      }
+      parameters: { max_new_tokens: 15, temperature: 0.3 }
     });
-    
-    // Parse the JSON response
-    const jsonString = response.generated_text.match(/\{.*\}/s)[0];
-    return JSON.parse(jsonString);
-  } catch (error) {
-    console.error('AI categorization failed:', error);
-    return { category: 'Other', tags: [] };
+    return response.generated_text.trim().replace(/"/g, '');
+  } catch (err) {
+    console.error('AI categorization error:', err);
+    return 'Other';
   }
 };
 
-// Generate financial advice
-exports.generateFinancialAdvice = async (transactions) => {
-  const summary = transactions.reduce((acc, t) => {
-    acc[t.category] = (acc[t.category] || 0) + t.amount;
+const generateFinancialAdvice = async (transactions) => {
+  const spending = transactions.reduce((acc, t) => {
+    if (t.type === 'expense') {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+    }
     return acc;
   }, {});
 
-  const prompt = `Generate personalized financial advice based on these spending categories:
-  ${JSON.stringify(summary, null, 2)}
+  const prompt = `Provide 3 personalized financial recommendations based on these spending patterns:
+  ${JSON.stringify(spending, null, 2)}
+  Format as numbered bullet points:`;
   
-  Provide 3 concise bullet points of advice:`;
-
   try {
     const response = await hf.textGeneration({
       model: 'gpt2',
       inputs: prompt,
-      parameters: {
-        max_new_tokens: 200,
-        temperature: 0.5
-      }
+      parameters: { max_new_tokens: 300, temperature: 0.7 }
     });
-    
     return response.generated_text;
-  } catch (error) {
-    console.error('AI advice generation failed:', error);
-    return "Currently unable to generate advice. Try again later.";
+  } catch (err) {
+    console.error('AI advice error:', err);
+    return "1. Track your expenses regularly\n2. Create a monthly budget\n3. Save at least 20% of your income";
   }
+};
+
+const predictSpending = async (transactions) => {
+  const monthlySpending = Array(12).fill(0);
+  transactions.forEach(t => {
+    if (t.type === 'expense') {
+      const month = new Date(t.date).getMonth();
+      monthlySpending[month] += t.amount;
+    }
+  });
+
+  const prompt = `Predict next 3 months spending based on this monthly data:
+  ${JSON.stringify(monthlySpending)}
+  Return JSON format: { "predictions": [{"month": "January", "amount": 500}, ...] }`;
+  
+  try {
+    const response = await hf.textGeneration({
+      model: 'gpt2',
+      inputs: prompt,
+      parameters: { max_new_tokens: 200 }
+    });
+    return JSON.parse(response.generated_text.match(/{.*}/s)[0]);
+  } catch (err) {
+    console.error('AI prediction error:', err);
+    return { predictions: [] };
+  }
+};
+
+module.exports = {
+  categorizeTransaction,
+  generateFinancialAdvice,
+  predictSpending
 };

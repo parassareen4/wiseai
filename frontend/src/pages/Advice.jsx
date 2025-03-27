@@ -1,33 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import api from '../api';
-import AdviceCard from '../components/advice/AdviceCard';
+import { useState } from 'react';
+import AdviceCard from '../components/AdviceCard';
 
-const Advice = () => {
+const Advice = ({ transactions }) => {
   const [advice, setAdvice] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchAdvice = async () => {
-      try {
-        const res = await api.get('/advice');
-        setAdvice(res.data);
-      } catch (err) {
-        console.error('Failed to fetch advice:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAdvice();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
+  const getAdvice = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/advice');
+      const { advice } = await response.json();
+      setAdvice(advice);
+    } catch (err) {
+      console.log(err)
+      setAdvice("Couldn't get advice. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Personalized Financial Advice</h1>
-      <AdviceCard advice={advice} />
+    <div>
+      <h2>AI Financial Advisor</h2>
+      <p>Analyzed {transactions.length} transactions</p>
+      <button onClick={getAdvice} disabled={loading}>
+        {loading ? 'Generating...' : 'Get Smart Advice'}
+      </button>
+      {advice && <AdviceCard advice={advice} />}
     </div>
   );
 };

@@ -3,46 +3,28 @@ const mongoose = require('mongoose');
 const transactionSchema = new mongoose.Schema({
   description: {
     type: String,
-    required: [true, 'Please add a description'],
-    trim: true,
-    maxlength: [100, 'Description cannot be more than 100 characters']
+    required: true,
+    trim: true
   },
   amount: {
     type: Number,
-    required: [true, 'Please add an amount'],
-    min: [0, 'Amount cannot be negative']
-  },
-  category: {
-    type: String,
-    required: [true, 'Please select a category'],
-    enum: [
-      'Food',
-      'Transportation',
-      'Housing',
-      'Entertainment',
-      'Utilities',
-      'Healthcare',
-      'Shopping',
-      'Other'
-    ],
-    default: 'Other'
+    required: true,
+    min: 0.01
   },
   type: {
     type: String,
     enum: ['income', 'expense'],
     required: true
   },
+  category: {
+    type: String,
+    required: true,
+    default: 'Other'
+  },
   date: {
     type: Date,
     default: Date.now
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

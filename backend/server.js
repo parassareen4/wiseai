@@ -1,43 +1,31 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const helmet = require('helmet');
-const path = require('path');
-const errorHandler = require('./middleware/errorHandler');
+const transactionRoutes = require('./routes/transaction');
+const goalRoutes = require('./routes/goals');
+const adviceRoutes = require('./routes/advice');
+const analysisRoutes = require('./routes/analysis');
 
-// Create Express app
 const app = express();
 
 // Middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 
 // Database connection
-mongoose.connect("mongodb+srv://akshitvig213:NBEVF9stJg1gYxeB@cluster0.wvw0s.mongodb.net/wiseai")
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect('mongodb+srv://akshitvig213:NBEVF9stJg1gYxeB@cluster0.wvw0s.mongodb.net/wiser', { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true 
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.log(err));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/transactions', require('./routes/transaction'));
-app.use('/api/goals', require('./routes/goals'));
-app.use('/api/advice', require('./routes/advice'));
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/goals', goalRoutes);
+app.use('/api/advice', adviceRoutes);
+app.use('/api/analysis', analysisRoutes);
 
-// Serve frontend in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
-  });
-}
-
-// Error handling
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 5000;
+// Start server
+const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -1,32 +1,67 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import PrivateRoute from './components/routing/PrivateRoute';
-import Navbar from './components/layout/Navbar';
-
-// Pages
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transaction';
-import Goals from './pages/Goals.jsx';
-import Advice from './pages/Advice.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register';
+import Goals from './pages/Goals';
+import Advice from './pages/Advice';
+import Analysis from './pages/Analysis';
+import Navbar from './components/Navbar';
 
 function App() {
+  const [transactions, setTransactions] = useState([]);
+  const [goals, setGoals] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/transactions')
+      .then(res => res.json())
+      .then(data => setTransactions(data));
+
+    fetch('http://localhost:5000/api/goals')
+      .then(res => res.json())
+      .then(data => setGoals(data));
+  }, []);
+
+  const addTransaction = (transaction) => {
+    fetch('http://localhost:5000/api/transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(transaction)
+    })
+      .then(res => res.json())
+      .then(newTransaction => setTransactions([newTransaction, ...transactions]));
+  };
+
+  const addGoal = (goal) => {
+    fetch('http://localhost:5000/api/goals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(goal)
+    })
+      .then(res => res.json())
+      .then(newGoal => setGoals([...goals, newGoal]));
+  };
+
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/transactions" element={<PrivateRoute><Transactions /></PrivateRoute>} />
-            <Route path="/goals" element={<PrivateRoute><Goals /></PrivateRoute>} />
-            <Route path="/advice" element={<PrivateRoute><Advice /></PrivateRoute>} />
-          </Routes>
-        </main>
+    <BrowserRouter>
+      <Navbar />
+      <div className="container">
+        <Routes>
+          <Route path="/" element={<Dashboard transactions={transactions} goals={goals} />} />
+          <Route path="/transactions" element={
+            <Transactions transactions={transactions} onAdd={addTransaction} />
+          } />
+          <Route path="/goals" element={
+            <Goals goals={goals} onAdd={addGoal} />
+          } />
+          <Route path="/advice" element={
+            <Advice transactions={transactions} />
+          } />
+          <Route path="/analysis" element={
+            <Analysis transactions={transactions} />
+          } />
+        </Routes>
       </div>
-    </Router>
+    </BrowserRouter>
   );
 }
 

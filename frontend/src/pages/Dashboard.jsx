@@ -1,49 +1,53 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import api from '../api';
-import SummaryCard from '../components/dashboard/SummaryCard';
-import RecentTransactions from '../components/transactions/RecentTransactions';
+import { Link } from 'react-router-dom';
+import SpendingChart from '../components/charts/SpendingChart';
+import GoalProgress from '../components/goals/GoalProgress';
 
-const Dashboard = () => {
-  const { user } = useAuth();
-  const [summary, setSummary] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Dashboard = ({ transactions, goals }) => {
+  const balance = transactions.reduce((total, t) => (
+    t.type === 'income' ? total + t.amount : total - t.amount
+  ), 0);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [summaryRes, transactionsRes] = await Promise.all([
-          api.get('/transactions/summary'),
-          api.get('/transactions?limit=5')
-        ]);
-        setSummary(summaryRes.data);
-        setTransactions(transactionsRes.data);
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) return <div>Loading...</div>;
+  const recentTransactions = transactions.slice(0, 5);
+  const recentGoals = goals.slice(0, 3);
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Welcome back, {user?.username}</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <SummaryCard title="Total Balance" value={summary?.balance} type="balance" />
-        <SummaryCard title="Total Income" value={summary?.income} type="income" />
-        <SummaryCard title="Total Expenses" value={summary?.expenses} type="expense" />
+    <div>
+      <h1>Dashboard</h1>
+      <div className="summary-cards">
+        <div className="card">
+          <h3>Current Balance</h3>
+          <p className="amount">${balance.toFixed(2)}</p>
+        </div>
+        <div className="card">
+          <h3>Active Goals</h3>
+          <p className="amount">{goals.length}</p>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
-        <RecentTransactions transactions={transactions} />
+      <div className="dashboard-section">
+        <h2>Recent Transactions</h2>
+        <ul className="transaction-list">
+          {recentTransactions.map(t => (
+            <li key={t._id} className={t.type}>
+              <span>{t.description}</span>
+              <span>${t.amount.toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+        <Link to="/transactions" className="btn">View All</Link>
+      </div>
+
+      <div className="dashboard-section">
+        <h2>Spending Breakdown</h2>
+        <SpendingChart transactions={transactions} />
+      </div>
+
+      <div className="dashboard-section">
+        <h2>Goal Progress</h2>
+        {recentGoals.map(goal => (
+          <GoalProgress key={goal._id} goal={goal} />
+        ))}
+        <Link to="/goals" className="btn">View All Goals</Link>
       </div>
     </div>
   );
