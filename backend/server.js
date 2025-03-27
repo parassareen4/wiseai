@@ -18,13 +18,13 @@ app.use(cors({
 app.use(express.json());
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect("mongodb+srv://akshitvig213:NBEVF9stJg1gYxeB@cluster0.wvw0s.mongodb.net/wiseai")
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/transactions', require('./routes/transactions'));
+app.use('/api/transactions', require('./routes/transaction'));
 app.use('/api/goals', require('./routes/goals'));
 app.use('/api/advice', require('./routes/advice'));
 
