@@ -1,5 +1,5 @@
 const { HfInference } = require('@huggingface/inference');
-const hf = new HfInference('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');
+const hf = new HfInference(');
 const Transaction = require('../models/Transaction');
 
 const categorizeTransaction = async (description) => {
