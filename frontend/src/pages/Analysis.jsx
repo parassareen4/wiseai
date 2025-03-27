@@ -24,48 +24,64 @@ const Analysis = ({ transactions }) => {
   }, []);
 
   return (
-    <div className="analysis-page">
-      <h1>Financial Analysis</h1>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        Financial Analysis
+      </h1>
       
-      <div className="analysis-section">
-        <h2>Spending Breakdown</h2>
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Spending Breakdown
+        </h2>
         <SpendingChart transactions={transactions} />
       </div>
       
-      <div className="analysis-section">
-        <h2>Spending Forecast</h2>
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Spending Forecast
+        </h2>
         {loading ? (
-          <p>Loading forecast data...</p>
+          <div className="text-gray-500 text-center py-4">Loading forecast data...</div>
         ) : forecast ? (
           <ForecastChart data={forecast} />
         ) : (
-          <p>No forecast data available</p>
+          <div className="text-gray-500 text-center py-4">No forecast data available</div>
         )}
       </div>
       
-      <div className="analysis-section">
-        <h2>Category Insights</h2>
-        <div className="category-insights">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Top Categories
+        </h2>
+        <div className="space-y-3">
           {transactions && transactions.length > 0 ? (
-            <ul>
-              {Object.entries(
-                transactions.reduce((acc, t) => {
-                  if (t.type === 'expense') {
-                    acc[t.category] = (acc[t.category] || 0) + 1;
-                  }
-                  return acc;
-                }, {})
-              )
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 3)
-              .map(([category, count]) => (
-                <li key={category}>
-                  <strong>{category}:</strong> {count} transactions
-                </li>
-              ))}
-            </ul>
+            Object.entries(
+              transactions.reduce((acc, t) => {
+                if (t.type === 'expense') {
+                  acc[t.category] = (acc[t.category] || 0) + 1;
+                }
+                return acc;
+              }, {})
+            )
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([category, count]) => (
+              <div 
+                key={category}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
+                <span className="font-medium text-gray-700">
+                  {category}
+                </span>
+                <span className="text-sm text-gray-600">
+                  {count} transactions
+                </span>
+              </div>
+            ))
           ) : (
-            <p>No transaction data available</p>
+            <div className="text-gray-500 text-center py-4">
+              No transaction data available
+            </div>
           )}
         </div>
       </div>
