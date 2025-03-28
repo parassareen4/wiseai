@@ -16,7 +16,7 @@ const Advice = ({ transactions, goals }) => {
       if (adviceType === 'goals') endpoint = '/api/advice/goals';
       if (adviceType === 'insights') endpoint = '/api/advice/insights';
   
-      const response = await fetch(`http://localhost:5000${endpoint}`);
+      const response = await fetch(`https://wiseai-fub2.onrender.com${endpoint}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch advice');

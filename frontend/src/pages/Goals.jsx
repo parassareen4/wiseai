@@ -11,7 +11,7 @@ const Goals = ({ goals, onAdd }) => {
   const fetchRecommendations = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/goals/recommendations');
+      const response = await fetch('https://wiseai-fub2.onrender.com/api/goals/recommendations');
       const data = await response.json();
       setRecommendations(data);
     } catch (err) {

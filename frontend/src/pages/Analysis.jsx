@@ -10,7 +10,7 @@ const Analysis = ({ transactions }) => {
     const fetchForecast = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/analysis/spending');
+        const response = await fetch('https://wiseai-fub2.onrender.com/api/analysis/spending');
         const data = await response.json();
         setForecast(data);
       } catch (err) {

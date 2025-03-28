@@ -12,17 +12,17 @@ function App() {
   const [goals, setGoals] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/transactions')
+    fetch('https://wiseai-fub2.onrender.com/api/transactions')
       .then(res => res.json())
       .then(data => setTransactions(data));
 
-    fetch('http://localhost:5000/api/goals')
+    fetch('https://wiseai-fub2.onrender.com/api/goals')
       .then(res => res.json())
       .then(data => setGoals(data));
   }, []);
 
   const addTransaction = (transaction) => {
-    fetch('http://localhost:5000/api/transactions', {
+    fetch('https://wiseai-fub2.onrender.com/api/transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(transaction)
@@ -32,7 +32,7 @@ function App() {
   };
 
   const addGoal = (goal) => {
-    fetch('http://localhost:5000/api/goals', {
+    fetch('https://wiseai-fub2.onrender.com/api/goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(goal)

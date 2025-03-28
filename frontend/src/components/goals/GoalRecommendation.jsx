@@ -13,7 +13,7 @@ const GoalRecommendations = ({ userId, forceRefresh }) => {
       // Add cache-busting parameter
       const timestamp = Date.now();
       const response = await fetch(
-        `http://localhost:5000/api/advice/goals?refresh=${timestamp}`, 
+        `https://wiseai-fub2.onrender.com/api/advice/goals?refresh=${timestamp}`, 
         {
           headers: {
             'Content-Type': 'application/json',

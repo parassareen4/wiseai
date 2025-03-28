@@ -15,7 +15,7 @@ const Transactions = ({ transactions, onAdd, onDelete }) => {
   const handleDelete = async (id) => {
     try {
       setIsDeleting(true);
-      const response = await fetch(`http://localhost:5000/api/transactions/${id}`, {
+      const response = await fetch(`https://wiseai-fub2.onrender.com/api/transactions/${id}`, {
         method: 'DELETE',
       });
 
